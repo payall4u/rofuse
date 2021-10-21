@@ -151,6 +151,8 @@ impl ReplyData {
         self.reply.send_ll(&ll::Response::new_data(data));
     }
 
+    pub fn zero_copy(self) {}
+
     /// Reply to a request with the given error code
     pub fn error(self, err: c_int) {
         self.reply.error(err);
