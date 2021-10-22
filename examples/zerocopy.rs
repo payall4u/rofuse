@@ -1,3 +1,4 @@
+use std::cmp::{max, min};
 use clap::{crate_version, App, Arg};
 use fuser::{
     FileAttr, FileType, Filesystem, MountOption, ReplyAttr, ReplyData, ReplyDirectory, ReplyEntry,
@@ -54,23 +55,20 @@ static ATTRS: [FileAttr; 2] = [
 struct Zero {
     file: File,
     attrs: Vec<FileAttr>,
-    buffer: Vec<u8>,
+    buffer: Mmap,
 }
 
-fn zero(name: String) -> Result<Zero> {
+unsafe fn zero(name: String) -> Result<Zero> {
     let mut attrs = Vec::from(ATTRS);
     let mut file = File::open(&name)?;
     attrs[1].size = file.metadata()?.len();
-    let mut buf = Vec::with_capacity(attrs[1].size as usize);
-    unsafe {
-        buf.set_len(buf.capacity());
-        buf = memmap::MmapOptions::new().map(&file)?.into_vec();
-    }
+    let ans = memmap::MmapOptions::new().map(&file)?;
+    println!("mmap len {}", ans.len());
 
     return Ok(Zero{
         file: file,
         attrs: attrs,
-        buffer: buf,
+        buffer: ans,
     })
 }
 
@@ -127,7 +125,9 @@ impl Filesystem for Zero {
     ) {
         match ino {
             2 => {
-                reply.data(&self.buffer[0..n]);
+                let end = min(offset as usize + _size as usize, self.buffer.len() as usize);
+                let vec = self.buffer[offset as usize..end].to_owned();
+                reply.data(&vec);
             }
             _ => reply.error(ENOENT),
         }
@@ -168,5 +168,7 @@ fn main() {
     if matches.is_present("allow-root") {
         options.push(MountOption::AllowRoot);
     }
-    fuser::mount2(zero(file.to_string()).unwrap(), mountpoint, &options).unwrap();
+    unsafe {
+        fuser::mount2(zero(file.to_string()).unwrap(), mountpoint, &options).unwrap();
+    }
 }
