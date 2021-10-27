@@ -12,7 +12,7 @@ impl Channel {
     /// Create a new communication channel to the kernel driver by mounting the
     /// given path. The kernel driver will delegate filesystem operations of
     /// the given path to the channel.
-    pub(crate) fn new(device: Arc<File>) -> Self {
+    pub fn new(device: Arc<File>) -> Self {
         Self(device)
     }
 

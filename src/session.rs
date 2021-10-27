@@ -28,7 +28,7 @@ pub const MAX_WRITE_SIZE: usize = 16 * 1024 * 1024;
 const BUFFER_SIZE: usize = MAX_WRITE_SIZE + 4096;
 
 #[derive(Debug, Eq, PartialEq)]
-pub(crate) enum SessionACL {
+pub enum SessionACL {
     All,
     RootAndOwner,
     Owner,
@@ -38,26 +38,26 @@ pub(crate) enum SessionACL {
 #[derive(Debug)]
 pub struct Session<FS: Filesystem> {
     /// Filesystem operation implementations
-    pub(crate) filesystem: FS,
+    pub filesystem: FS,
     /// Communication channel to the kernel driver
     ch: Channel,
     /// Handle to the mount.  Dropping this unmounts.
-    mount: Option<Mount>,
+    pub mount: Option<Mount>,
     /// Mount point
-    mountpoint: PathBuf,
+    pub mountpoint: PathBuf,
     /// Whether to restrict access to owner, root + owner, or unrestricted
     /// Used to implement allow_root and auto_unmount
-    pub(crate) allowed: SessionACL,
+    pub allowed: SessionACL,
     /// User that launched the fuser process
-    pub(crate) session_owner: u32,
+    pub session_owner: u32,
     /// FUSE protocol major version
-    pub(crate) proto_major: u32,
+    pub proto_major: u32,
     /// FUSE protocol minor version
-    pub(crate) proto_minor: u32,
+    pub proto_minor: u32,
     /// True if the filesystem is initialized (init operation done)
-    pub(crate) initialized: bool,
+    pub initialized: bool,
     /// True if the filesystem was destroyed (destroy operation done)
-    pub(crate) destroyed: bool,
+    pub destroyed: bool,
 }
 
 impl<FS: Filesystem> Session<FS> {
@@ -104,6 +104,21 @@ impl<FS: Filesystem> Session<FS> {
             initialized: false,
             destroyed: false,
         })
+    }
+
+    pub fn restore(filesystem: FS, mountpoint: PathBuf, ch: Channel) -> Session<FS> {
+        Session{
+            filesystem: filesystem,
+            ch,
+            mount: None,
+            mountpoint: mountpoint,
+            allowed: SessionACL::All,
+            session_owner: 0,
+            proto_major: 0,
+            proto_minor: 0,
+            initialized: false,
+            destroyed: false
+        }
     }
 
     /// Return path of the mounted filesystem

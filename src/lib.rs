@@ -42,9 +42,9 @@ use std::cmp::max;
 #[cfg(feature = "abi-7-13")]
 use std::cmp::min;
 
-mod channel;
+pub mod channel;
 mod ll;
-mod mnt;
+pub mod mnt;
 mod reply;
 mod request;
 mod session;
