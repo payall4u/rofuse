@@ -7,6 +7,7 @@ use log::*;
 use std::thread::sleep;
 use std::time::Duration;
 use std::fs::File;
+use std::os::raw::c_int;
 use std::path::Path;
 use std::sync::Arc;
 use flexi_logger::{colored_opt_format, Logger};
@@ -61,6 +62,12 @@ fn master(mut opt: Options) -> io::Result<()> {
 }
 
 fn worker(opt: Options) -> io::Result<()> {
+    unsafe {
+        let res = libc::ioctl(opt.session as c_int, (2 << 29) | (4 << 16) | (230 << 8), 0);
+        info!("ioctl {} {} {}", opt.session as c_int, (2 << 29) | (4 << 16) | (230 << 8), 0);
+        info!("res {}", res);
+    };
+
     let zerofs = unsafe{mufs::zero("file".to_string())?};
     let file = unsafe {File::from_raw_fd(opt.session as RawFd)};
     let ch = Channel::new(Arc::new(file));
