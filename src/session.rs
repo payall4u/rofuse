@@ -116,7 +116,7 @@ impl<FS: Filesystem> Session<FS> {
             session_owner: 0,
             proto_major: 0,
             proto_minor: 0,
-            initialized: false,
+            initialized: true,
             destroyed: false
         }
     }

@@ -4,14 +4,13 @@ use std::io;
 use std::env;
 use std::process::Command;
 use log::*;
-use nix::fcntl::fcntl;
 use std::thread::sleep;
 use std::time::Duration;
 use std::fs::File;
-use std::os::unix::io::RawFd;
 use std::path::Path;
 use std::sync::Arc;
 use flexi_logger::{colored_opt_format, Logger};
+use std::os::unix::io::{RawFd, FromRawFd, AsRawFd};
 
 use fuser::MountOption;
 use fuser::{channel::Channel, mnt::Mount, Session};
@@ -51,7 +50,8 @@ fn master(mut opt: Options) -> io::Result<()> {
     let current_cmd = env::args().nth(0).unwrap();
     info!("{}/{}", current_dir, current_cmd);
     loop {
-        let mut cmd = Command::new(format!("{}/{}", current_dir, current_cmd)).args(child_opt.to_args());
+        let mut cmd = Command::new(format!("{}/{}", current_dir, current_cmd));
+        cmd.args(child_opt.to_args());
         let mut res = cmd.spawn().expect("worker failed");
         match res.wait() {
             Ok(s) => println!("{}", s),
@@ -105,6 +105,8 @@ impl Options {
         args.push(self.role.to_string());
         args.push("--session-fd".to_string());
         args.push(format!("{}", self.session));
+        args.push("--mountpoint".to_string());
+        args.push( self.mountpoint.to_string());
         args
     }
 }
@@ -152,8 +154,11 @@ pub mod mufs {
 
     const MAX: i32 = 4 * 1024 *1024;
     const TTL: Duration = Duration::from_secs(1); // 1 second
+    const HELLO_TXT_CONTENT: &str = "Hello World!\n";
+    const FAST_CONTENT: &str = "fast\n";
+    const SLOW_CONTENT: &str = "slow\n";
 
-    static ATTRS: [FileAttr; 2] = [
+    static ATTRS: [FileAttr; 4] = [
         FileAttr {
             ino: 1,
             size: 0,
@@ -170,10 +175,9 @@ pub mod mufs {
             rdev: 0,
             flags: 0,
             blksize: 512,
-        },
-        FileAttr {
+        }, FileAttr {
             ino: 2,
-            size: 65535,
+            size: 13,
             blocks: 1,
             atime: UNIX_EPOCH, // 1970-01-01 00:00:00
             mtime: UNIX_EPOCH,
@@ -187,33 +191,62 @@ pub mod mufs {
             rdev: 0,
             flags: 0,
             blksize: 512,
-        },
+        }, FileAttr {
+            ino: 3,
+            size: 5,
+            blocks: 1,
+            atime: UNIX_EPOCH, // 1970-01-01 00:00:00
+            mtime: UNIX_EPOCH,
+            ctime: UNIX_EPOCH,
+            crtime: UNIX_EPOCH,
+            kind: FileType::RegularFile,
+            perm: 0o644,
+            nlink: 1,
+            uid: 501,
+            gid: 20,
+            rdev: 0,
+            flags: 0,
+            blksize: 512,
+        }, FileAttr {
+            ino: 4,
+            size: 5,
+            blocks: 1,
+            atime: UNIX_EPOCH, // 1970-01-01 00:00:00
+            mtime: UNIX_EPOCH,
+            ctime: UNIX_EPOCH,
+            crtime: UNIX_EPOCH,
+            kind: FileType::RegularFile,
+            perm: 0o644,
+            nlink: 1,
+            uid: 501,
+            gid: 20,
+            rdev: 0,
+            flags: 0,
+            blksize: 512,
+        }
     ];
 
     pub struct Zero {
-        file: File,
         attrs: Vec<FileAttr>,
-        buffer: Mmap,
     }
 
     pub unsafe fn zero(name: String) -> Result<Zero> {
         let mut attrs = Vec::from(ATTRS);
-        let mut file = File::open(&name)?;
-        attrs[1].size = file.metadata()?.len();
-        let ans = memmap::MmapOptions::new().map(&file)?;
-        println!("mmap len {}", ans.len());
 
         return Ok(Zero{
-            file: file,
             attrs: attrs,
-            buffer: ans,
         })
     }
 
     impl Filesystem for Zero {
         fn lookup(&mut self, _req: &Request, parent: u64, name: &OsStr, reply: ReplyEntry) {
-            if parent == 1 && name.to_str() == Some("hello.txt") {
-                reply.entry(&TTL, &self.attrs[1], 0);
+            if parent == 1 {
+                match name.to_str().unwrap() {
+                    "hello.txt" => reply.entry(&TTL, &self.attrs[1], 0),
+                    "fast.txt" => reply.entry(&TTL, &self.attrs[2], 0),
+                    "slow.txt" => reply.entry(&TTL, &self.attrs[3], 0),
+                    _ => {reply.error(ENOENT)}
+                }
             } else {
                 reply.error(ENOENT);
             }
@@ -240,8 +273,11 @@ pub mod mufs {
                         (1, FileType::Directory, "."),
                         (1, FileType::Directory, ".."),
                         (2, FileType::RegularFile, "hello.txt"),
+                        (3, FileType::RegularFile, "fast.txt"),
+                        (4, FileType::RegularFile, "slow.txt"),
                     ]
                         .iter()
+                        .skip(offset as usize)
                         .enumerate()
                         .all(|(index, entry)| reply.add(entry.0, (index + 1) as i64, entry.1, entry.2));
                     reply.ok();
@@ -262,11 +298,9 @@ pub mod mufs {
             reply: ReplyData,
         ) {
             match ino {
-                2 => {
-                    let end = min(offset as usize + _size as usize, self.buffer.len() as usize);
-                    let vec = self.buffer[offset as usize..end].to_owned();
-                    reply.data(&vec);
-                }
+                2 => reply.data(&HELLO_TXT_CONTENT.as_bytes()[offset as usize..]),
+                3 => {std::thread::sleep(Duration::from_secs(1));  reply.data(&FAST_CONTENT.as_bytes()[offset as usize..])},
+                4 => {std::thread::sleep(Duration::from_secs(10)); reply.data(&SLOW_CONTENT.as_bytes()[offset as usize..])},
                 _ => reply.error(ENOENT),
             }
         }
