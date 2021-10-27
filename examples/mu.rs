@@ -277,8 +277,8 @@ pub mod mufs {
                         (4, FileType::RegularFile, "slow.txt"),
                     ]
                         .iter()
-                        .skip(offset as usize)
                         .enumerate()
+                        .skip(offset as usize)
                         .all(|(index, entry)| reply.add(entry.0, (index + 1) as i64, entry.1, entry.2));
                     reply.ok();
                 }
