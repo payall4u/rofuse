@@ -28,7 +28,7 @@ pub const MAX_WRITE_SIZE: usize = 16 * 1024 * 1024;
 const BUFFER_SIZE: usize = MAX_WRITE_SIZE + 4096;
 
 #[derive(Debug, Eq, PartialEq)]
-pub enum SessionACL {
+pub(crate) enum SessionACL {
     All,
     RootAndOwner,
     Owner,
@@ -38,26 +38,26 @@ pub enum SessionACL {
 #[derive(Debug)]
 pub struct Session<FS: Filesystem> {
     /// Filesystem operation implementations
-    pub filesystem: FS,
+    pub(crate) filesystem: FS,
     /// Communication channel to the kernel driver
     ch: Channel,
     /// Handle to the mount.  Dropping this unmounts.
-    pub mount: Option<Mount>,
+    mount: Option<Mount>,
     /// Mount point
-    pub mountpoint: PathBuf,
+    mountpoint: PathBuf,
     /// Whether to restrict access to owner, root + owner, or unrestricted
     /// Used to implement allow_root and auto_unmount
-    pub allowed: SessionACL,
+    pub(crate) allowed: SessionACL,
     /// User that launched the fuser process
-    pub session_owner: u32,
+    pub(crate) session_owner: u32,
     /// FUSE protocol major version
-    pub proto_major: u32,
+    pub(crate) proto_major: u32,
     /// FUSE protocol minor version
-    pub proto_minor: u32,
+    pub(crate) proto_minor: u32,
     /// True if the filesystem is initialized (init operation done)
-    pub initialized: bool,
+    pub(crate) initialized: bool,
     /// True if the filesystem was destroyed (destroy operation done)
-    pub destroyed: bool,
+    pub(crate) destroyed: bool,
 }
 
 impl<FS: Filesystem> Session<FS> {
