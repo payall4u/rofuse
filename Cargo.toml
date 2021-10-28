@@ -1,12 +1,11 @@
 [package]
-name = "fuser"
+name = "rofuse"
 edition = "2018"
-version = "0.9.1"
-authors = ["Christopher Berner <christopherberner@gmail.com>"]
+version = "0.0.1"
+authors = ["payall4u <payall4u@qq.com>"]
 description = "Filesystem in Userspace (FUSE) for Rust"
-documentation = "https://docs.rs/fuser"
-homepage = "https://github.com/cberner/fuser"
-repository = "https://github.com/cberner/fuser"
+homepage = "https://github.com/payall4u/rofuse"
+repository = "https://github.com/payall4u/rofuse"
 readme = "README.md"
 keywords = ["fuse", "filesystem", "system", "bindings"]
 categories = ["external-ffi-bindings", "api-bindings", "filesystem", "os::unix-apis"]
@@ -14,10 +13,10 @@ build = "build.rs"
 license = "MIT"
 
 [badges]
-travis-ci = { repository = "cberner/fuser" }
+travis-ci = { repository = "payall4u/rofuse" }
 
 [dependencies]
-memmap = "0.7.0"
+memmap2 = "0.5.0"
 libc = "0.2.51"
 log = "0.4.6"
 memchr = "2"
@@ -25,9 +24,9 @@ users = "0.11.0"
 page_size = "0.4.2"
 serde = {version = "1.0.102", features = ["std", "derive"], optional = true}
 smallvec = "1.6.1"
-zerocopy = "0.5"
+zerocopy = "0.6.0"
 structopt = "0.3"
-flexi_logger = "0.18.0"
+flexi_logger = "0.19.5"
 
 [dev-dependencies]
 env_logger = "0.8"

@@ -21,6 +21,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "ansi_term"
+version = "0.12.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d52a9bb7ec0cf484c551830a7ce27bd20d67eac647e1befb56b0be4ee39a55d2"
+dependencies = [
+ "winapi",
+]
+
+[[package]]
 name = "atty"
 version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -74,7 +83,6 @@ dependencies = [
  "libc",
  "num-integer",
  "num-traits",
- "time",
  "winapi",
 ]
 
@@ -84,7 +92,7 @@ version = "2.33.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "37e58ac78573c40708d45522f0d80fa2f01cc4f9b4e2bf749807255454312002"
 dependencies = [
- "ansi_term",
+ "ansi_term 0.11.0",
  "atty",
  "bitflags",
  "strsim",
@@ -108,40 +116,19 @@ dependencies = [
 
 [[package]]
 name = "flexi_logger"
-version = "0.18.1"
+version = "0.19.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "081e9563bb9600593f0f5d38c24f0e3dc550cd301b4872b986e20f1874104791"
+checksum = "eb300b5c59fc4894ea567328a30a3ee3c5a63fb59e17c34b2327ac230455eb79"
 dependencies = [
+ "ansi_term 0.12.1",
  "atty",
  "chrono",
  "glob",
  "lazy_static",
  "log",
  "regex",
+ "rustversion",
  "thiserror",
- "yansi",
-]
-
-[[package]]
-name = "fuser"
-version = "0.9.1"
-dependencies = [
- "bincode",
- "clap",
- "env_logger",
- "flexi_logger",
- "libc",
- "log",
- "memchr",
- "memmap",
- "page_size",
- "pkg-config",
- "serde",
- "smallvec",
- "structopt",
- "tempfile",
- "users",
- "zerocopy",
 ]
 
 [[package]]
@@ -213,13 +200,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0ee1c47aaa256ecabcaea351eae4a9b01ef39ed810004e298d2511ed284b1525"
 
 [[package]]
-name = "memmap"
-version = "0.7.0"
+name = "memmap2"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6585fd95e7bb50d6cc31e20d4cf9afb4e2ba16c5846fc76793f11218da9c475b"
+checksum = "4647a11b578fead29cdbb34d4adef8dd3dc35b876c9c6d5240d83f205abfe96e"
 dependencies = [
  "libc",
- "winapi",
 ]
 
 [[package]]
@@ -388,6 +374,34 @@ dependencies = [
 ]
 
 [[package]]
+name = "rofuse"
+version = "0.0.1"
+dependencies = [
+ "bincode",
+ "clap",
+ "env_logger",
+ "flexi_logger",
+ "libc",
+ "log",
+ "memchr",
+ "memmap2",
+ "page_size",
+ "pkg-config",
+ "serde",
+ "smallvec",
+ "structopt",
+ "tempfile",
+ "users",
+ "zerocopy",
+]
+
+[[package]]
+name = "rustversion"
+version = "1.0.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "61b3909d758bb75c79f23d4736fac9433868679d3ad2ea7a61e3c25cfda9a088"
+
+[[package]]
 name = "serde"
 version = "1.0.123"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -528,16 +542,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "time"
-version = "0.1.43"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ca8a50ef2360fbd1eeb0ecd46795a87a19024eb4b53c5dc916ca1fd95fe62438"
-dependencies = [
- "libc",
- "winapi",
-]
-
-[[package]]
 name = "unicode-segmentation"
 version = "1.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -615,16 +619,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
 
 [[package]]
-name = "yansi"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9fc79f4a1e39857fc00c3f662cbf2651c771f00e9c15fe2abc341806bd46bd71"
-
-[[package]]
 name = "zerocopy"
-version = "0.5.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5e59ec1d2457bd6c0dd89b50e7d9d6b0b647809bf3f0a59ac85557046950b7b2"
+checksum = "ae0f717764196a220d8c58500e3a3595e2c9054f95d66267f9fd5f6e74ad0fec"
 dependencies = [
  "byteorder",
  "zerocopy-derive",

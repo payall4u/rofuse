@@ -1,10 +1,10 @@
 use std::cmp::{max, min};
 use clap::{crate_version, App, Arg};
-use fuser::{
+use rofuse::{
     FileAttr, FileType, Filesystem, MountOption, ReplyAttr, ReplyData, ReplyDirectory, ReplyEntry,
     Request,
 };
-use memmap::{Mmap, MmapOptions};
+use memmap2::{Mmap, MmapOptions};
 use libc::ENOENT;
 use std::ffi::OsStr;
 use std::time::{Duration, UNIX_EPOCH};
@@ -169,6 +169,6 @@ fn main() {
         options.push(MountOption::AllowRoot);
     }
     unsafe {
-        fuser::mount2(zero(file.to_string()).unwrap(), mountpoint, &options).unwrap();
+        rofuse::mount2(zero(file.to_string()).unwrap(), mountpoint, &options).unwrap();
     }
 }

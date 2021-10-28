@@ -1,13 +1,13 @@
 #![allow(clippy::needless_return)]
 
 use clap::{crate_version, App, Arg};
-use fuser::consts::FOPEN_DIRECT_IO;
+use rofuse::consts::FOPEN_DIRECT_IO;
 #[cfg(feature = "abi-7-26")]
-use fuser::consts::FUSE_HANDLE_KILLPRIV;
+use rofuse::consts::FUSE_HANDLE_KILLPRIV;
 #[cfg(feature = "abi-7-31")]
-use fuser::consts::FUSE_WRITE_KILL_PRIV;
-use fuser::TimeOrNow::Now;
-use fuser::{
+use rofuse::consts::FUSE_WRITE_KILL_PRIV;
+use rofuse::TimeOrNow::Now;
+use rofuse::{
     Filesystem, KernelConfig, MountOption, ReplyAttr, ReplyCreate, ReplyData, ReplyDirectory,
     ReplyEmpty, ReplyEntry, ReplyOpen, ReplyStatfs, ReplyWrite, ReplyXattr, Request, TimeOrNow,
     FUSE_ROOT_ID,
@@ -55,12 +55,12 @@ enum FileKind {
     Symlink,
 }
 
-impl From<FileKind> for fuser::FileType {
+impl From<FileKind> for rofuse::FileType {
     fn from(kind: FileKind) -> Self {
         match kind {
-            FileKind::File => fuser::FileType::RegularFile,
-            FileKind::Directory => fuser::FileType::Directory,
-            FileKind::Symlink => fuser::FileType::Symlink,
+            FileKind::File => rofuse::FileType::RegularFile,
+            FileKind::Directory => rofuse::FileType::Directory,
+            FileKind::Symlink => rofuse::FileType::Symlink,
         }
     }
 }
@@ -215,9 +215,9 @@ struct InodeAttributes {
     pub xattrs: BTreeMap<Vec<u8>, Vec<u8>>,
 }
 
-impl From<InodeAttributes> for fuser::FileAttr {
+impl From<InodeAttributes> for rofuse::FileAttr {
     fn from(attrs: InodeAttributes) -> Self {
-        fuser::FileAttr {
+        rofuse::FileAttr {
             ino: attrs.inode,
             size: attrs.size,
             blocks: (attrs.size + BLOCK_SIZE - 1) / BLOCK_SIZE,
@@ -288,7 +288,7 @@ impl SimpleFS {
         let current_inode = if let Ok(file) = File::open(&path) {
             bincode::deserialize_from(file).unwrap()
         } else {
-            fuser::FUSE_ROOT_ID
+            rofuse::FUSE_ROOT_ID
         };
 
         let file = OpenOptions::new()

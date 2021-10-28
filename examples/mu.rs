@@ -13,8 +13,8 @@ use std::sync::Arc;
 use flexi_logger::{colored_opt_format, Logger};
 use std::os::unix::io::{RawFd, FromRawFd, AsRawFd};
 
-use fuser::MountOption;
-use fuser::{channel::Channel, mnt::Mount, Session};
+use rofuse::MountOption;
+use rofuse::{channel::Channel, mnt::Mount, Session};
 
 fn main() {
     let opt: Options = Options::from_args();
@@ -147,7 +147,7 @@ impl ToString for Role {
 pub mod mufs {
     use std::cmp::{max, min};
     use clap::{crate_version, App, Arg};
-    use fuser::{
+    use rofuse::{
         FileAttr, FileType, Filesystem, MountOption, ReplyAttr, ReplyData, ReplyDirectory, ReplyEntry,
         Request,
     };

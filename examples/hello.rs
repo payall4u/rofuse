@@ -1,5 +1,5 @@
 use clap::{crate_version, App, Arg};
-use fuser::{
+use rofuse::{
     FileAttr, FileType, Filesystem, MountOption, ReplyAttr, ReplyData, ReplyDirectory, ReplyEntry,
     Request,
 };
@@ -143,5 +143,5 @@ fn main() {
     if matches.is_present("allow-root") {
         options.push(MountOption::AllowRoot);
     }
-    fuser::mount2(HelloFS, mountpoint, &options).unwrap();
+    rofuse::mount2(HelloFS, mountpoint, &options).unwrap();
 }
