@@ -2032,7 +2032,7 @@ fn main() {
         .unwrap_or_default()
         .to_string();
 
-    fuser::mount2(
+    rofuse::mount2(
         SimpleFS::new(
             data_dir,
             matches.is_present("direct-io"),

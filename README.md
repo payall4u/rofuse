@@ -1,6 +1,6 @@
 # FUSE (Filesystem in Userspace) for Rust
 
-[![Build Status](https://travis-ci.com/payall4u/rofuse.svg?branch=rofuse)](https://travis-ci.com/payall4u/rofuse)
+[![Build Status](https://travis-ci.com/payall4u/rofuse.svg?branch=main)](https://travis-ci.com/payall4u/rofuse)
 [![Crates.io](https://img.shields.io/crates/v/rofuse.svg)](https://crates.io/crates/rofuse)
 [![Documentation](https://docs.rs/rofuse/badge.svg)](https://docs.rs/rofuse)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/cberner/fuser/blob/master/LICENSE.md)
