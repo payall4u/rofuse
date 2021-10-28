@@ -63,8 +63,8 @@ fn master(mut opt: Options) -> io::Result<()> {
 
 fn worker(opt: Options) -> io::Result<()> {
     unsafe {
-        let res = libc::ioctl(opt.session as c_int, (2 << 29) | (4 << 16) | (230 << 8), 0);
-        info!("ioctl {} {} {}", opt.session as c_int, (2 << 29) | (4 << 16) | (230 << 8), 0);
+        let res = libc::ioctl(opt.session as c_int, (2 << 30) | (4 << 16) | (230 << 8), 0);
+        info!("ioctl {} {} {}", opt.session as c_int, (2 << 30) | (4 << 16) | (230 << 8), 0);
         info!("res {}", res);
     };
 
