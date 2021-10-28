@@ -7,7 +7,7 @@
 [![dependency status](https://deps.rs/repo/github/cberner/fuser/status.svg)](https://deps.rs/repo/github/cberner/fuser)
 
 ## Rofuse
-**The library rofuse was forked from the [fuser](https://github.com/cberner/fuser).**
+**The library rofuse was forked from the [fuser](https://github.com/cberner/fuser).** Rofuse supports restore from panic, but it can only restore on Tencent OS currently.
 
 ## About
 
