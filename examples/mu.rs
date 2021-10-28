@@ -63,8 +63,8 @@ fn master(mut opt: Options) -> io::Result<()> {
 
 fn worker(opt: Options) -> io::Result<()> {
     unsafe {
-        let res = libc::ioctl(opt.session as c_int, (2 << 30) | (4 << 16) | (230 << 8), 0);
-        info!("ioctl {} {} {}", opt.session as c_int, (2 << 30) | (4 << 16) | (230 << 8), 0);
+        let res = libc::ioctl(opt.session as c_int, (2 << 30) | (4 << 16) | (230 << 8) as u64, 0);
+        info!("ioctl {} {} {}", opt.session as c_int, (2 << 30) | (4 << 16) | (230 << 8) as u64, 0);
         info!("res {}", res);
     };
 
@@ -261,7 +261,7 @@ pub mod mufs {
 
         fn getattr(&mut self, _req: &Request, ino: u64, reply: ReplyAttr) {
             match ino {
-                1 | 2 => reply.attr(&TTL, &self.attrs[(ino - 1) as usize]),
+                1 | 2 | 3 | 4 => reply.attr(&TTL, &self.attrs[(ino - 1) as usize]),
                 _ => reply.error(ENOENT),
             }
         }
