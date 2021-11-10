@@ -8,7 +8,11 @@
 use libc::{EAGAIN, EINTR, ENODEV, ENOENT};
 use log::{info, warn};
 use std::fmt;
+use std::fs::File;
+use std::os::raw::c_int;
+use std::os::unix::io::{FromRawFd, RawFd};
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 use std::thread::{self, JoinHandle};
 use std::{io, ops::DerefMut};
 
@@ -106,10 +110,19 @@ impl<FS: Filesystem> Session<FS> {
         })
     }
 
-    pub fn restore(filesystem: FS, mountpoint: PathBuf, ch: Channel) -> Session<FS> {
-        Session{
+    pub fn restore(filesystem: FS, mountpoint: PathBuf, fd: i32) -> Session<FS> {
+        unsafe {
+            let magic: u64 = (2 << 30) | (4 << 16) | (230 << 8);
+            let res = libc::ioctl(fd as c_int, magic, 0);
+            info!("[rofuse] ioctl {} {} {}", fd as c_int, magic, 0);
+            info!("[rofuse] res {}", res);
+        };
+
+        Session {
             filesystem: filesystem,
-            ch,
+            ch: Channel::new(Arc::new(unsafe {
+                File::from_raw_fd(fd as RawFd)
+            })),
             mount: None,
             mountpoint: mountpoint,
             allowed: SessionACL::All,
@@ -117,7 +130,7 @@ impl<FS: Filesystem> Session<FS> {
             proto_major: 0,
             proto_minor: 0,
             initialized: true,
-            destroyed: false
+            destroyed: false,
         }
     }
 
