@@ -110,19 +110,23 @@ impl<FS: Filesystem> Session<FS> {
         })
     }
 
+    #[cfg(all(target_os = "linux"))]
     pub fn restore(filesystem: FS, mountpoint: PathBuf, fd: i32) -> Session<FS> {
         unsafe {
+            #[cfg(not(target_env = "musl"))]
             let magic: u64 = (2 << 30) | (4 << 16) | (230 << 8);
+            #[cfg(target_env = "musl")]
+            let magic: i32 = (2 << 30) | (4 << 16) | (230 << 8);
             let res = libc::ioctl(fd as c_int, magic, 0);
-            info!("[rofuse] ioctl {} {} {}", fd as c_int, magic, 0);
-            info!("[rofuse] res {}", res);
+            info!(
+                "[rofuse] ioctl({},{},{}), res {}",
+                fd as c_int, magic, 0, res
+            );
         };
 
         Session {
             filesystem: filesystem,
-            ch: Channel::new(Arc::new(unsafe {
-                File::from_raw_fd(fd as RawFd)
-            })),
+            ch: Channel::new(Arc::new(unsafe { File::from_raw_fd(fd as RawFd) })),
             mount: None,
             mountpoint: mountpoint,
             allowed: SessionACL::All,
