@@ -1,17 +1,17 @@
-use std::str::FromStr;
-use structopt::StructOpt;
-use std::io;
-use std::env;
-use std::process::Command;
+use flexi_logger::{colored_opt_format, Logger};
 use log::*;
+use std::env;
+use std::fs::File;
+use std::io;
+use std::os::raw::c_int;
+use std::os::unix::io::{AsRawFd, FromRawFd, RawFd};
+use std::path::Path;
+use std::process::Command;
+use std::str::FromStr;
+use std::sync::Arc;
 use std::thread::sleep;
 use std::time::Duration;
-use std::fs::File;
-use std::os::raw::c_int;
-use std::path::Path;
-use std::sync::Arc;
-use flexi_logger::{colored_opt_format, Logger};
-use std::os::unix::io::{RawFd, FromRawFd, AsRawFd};
+use structopt::StructOpt;
 
 use rofuse::MountOption;
 use rofuse::{channel::Channel, mnt::Mount, Session};
@@ -21,14 +21,16 @@ fn main() {
     Logger::try_with_env_or_str("trace")
         .unwrap()
         .format(colored_opt_format)
-        .start().unwrap();
+        .start()
+        .unwrap();
     log::set_max_level(LevelFilter::Trace);
     debug!("{:?}", opt);
 
     match opt.role {
         Role::Master => master(opt),
         Role::Worker => worker(opt),
-    }.unwrap()
+    }
+    .unwrap()
 }
 
 fn master(mut opt: Options) -> io::Result<()> {
@@ -63,16 +65,25 @@ fn master(mut opt: Options) -> io::Result<()> {
 
 fn worker(opt: Options) -> io::Result<()> {
     unsafe {
-        let res = libc::ioctl(opt.session as c_int, (2 << 30) | (4 << 16) | (230 << 8) as u64, 0);
-        info!("ioctl {} {} {}", opt.session as c_int, (2 << 30) | (4 << 16) | (230 << 8) as u64, 0);
+        let res = libc::ioctl(
+            opt.session as c_int,
+            (2 << 30) | (4 << 16) | (230 << 8) as u64,
+            0,
+        );
+        info!(
+            "ioctl {} {} {}",
+            opt.session as c_int,
+            (2 << 30) | (4 << 16) | (230 << 8) as u64,
+            0
+        );
         info!("res {}", res);
     };
 
-    let zerofs = unsafe{mufs::zero("file".to_string())?};
-    let file = unsafe {File::from_raw_fd(opt.session as RawFd)};
+    let zerofs = unsafe { mufs::zero("file".to_string())? };
+    let file = unsafe { File::from_raw_fd(opt.session as RawFd) };
     let ch = Channel::new(Arc::new(file));
     Session::restore(zerofs, opt.mountpoint.parse().unwrap(), ch).run();
-    return Ok(())
+    return Ok(());
 }
 
 #[derive(StructOpt, Debug, Clone)]
@@ -100,7 +111,7 @@ pub struct Options {
         short = "p",
         long = "mountpoint",
         required = true,
-        help = "mount point",
+        help = "mount point"
     )]
     pub mountpoint: String,
 }
@@ -113,7 +124,7 @@ impl Options {
         args.push("--session-fd".to_string());
         args.push(format!("{}", self.session));
         args.push("--mountpoint".to_string());
-        args.push( self.mountpoint.to_string());
+        args.push(self.mountpoint.to_string());
         args
     }
 }
@@ -130,7 +141,7 @@ impl FromStr for Role {
         match role {
             "master" => Ok(Role::Master),
             "worker" => Ok(Role::Worker),
-            _ => Err(format!("bad role {}", role))
+            _ => Err(format!("bad role {}", role)),
         }
     }
 }
@@ -140,26 +151,28 @@ impl ToString for Role {
         match self {
             Role::Master => "master",
             Role::Worker => "worker",
-        }.parse().unwrap()
+        }
+        .parse()
+        .unwrap()
     }
 }
 
 pub mod mufs {
-    use std::cmp::{max, min};
     use clap::{crate_version, App, Arg};
-    use rofuse::{
-        FileAttr, FileType, Filesystem, MountOption, ReplyAttr, ReplyData, ReplyDirectory, ReplyEntry,
-        Request,
-    };
-    use memmap::{Mmap, MmapOptions};
     use libc::ENOENT;
+    use memmap::{Mmap, MmapOptions};
+    use rofuse::{
+        FileAttr, FileType, Filesystem, MountOption, ReplyAttr, ReplyData, ReplyDirectory,
+        ReplyEntry, Request,
+    };
+    use std::cmp::{max, min};
     use std::ffi::OsStr;
-    use std::time::{Duration, UNIX_EPOCH};
-    use std::io::{Result, Error, Read, Seek};
     use std::fs::File;
+    use std::io::{Error, Read, Result, Seek};
     use std::os::unix::fs::FileExt;
+    use std::time::{Duration, UNIX_EPOCH};
 
-    const MAX: i32 = 4 * 1024 *1024;
+    const MAX: i32 = 4 * 1024 * 1024;
     const TTL: Duration = Duration::from_secs(1); // 1 second
     const HELLO_TXT_CONTENT: &str = "Hello World!\n";
     const FAST_CONTENT: &str = "fast\n";
@@ -182,7 +195,8 @@ pub mod mufs {
             rdev: 0,
             flags: 0,
             blksize: 512,
-        }, FileAttr {
+        },
+        FileAttr {
             ino: 2,
             size: 13,
             blocks: 1,
@@ -198,7 +212,8 @@ pub mod mufs {
             rdev: 0,
             flags: 0,
             blksize: 512,
-        }, FileAttr {
+        },
+        FileAttr {
             ino: 3,
             size: 5,
             blocks: 1,
@@ -214,7 +229,8 @@ pub mod mufs {
             rdev: 0,
             flags: 0,
             blksize: 512,
-        }, FileAttr {
+        },
+        FileAttr {
             ino: 4,
             size: 5,
             blocks: 1,
@@ -230,7 +246,7 @@ pub mod mufs {
             rdev: 0,
             flags: 0,
             blksize: 512,
-        }
+        },
     ];
 
     pub struct Zero {
@@ -240,9 +256,7 @@ pub mod mufs {
     pub unsafe fn zero(name: String) -> Result<Zero> {
         let mut attrs = Vec::from(ATTRS);
 
-        return Ok(Zero{
-            attrs: attrs,
-        })
+        return Ok(Zero { attrs: attrs });
     }
 
     impl Filesystem for Zero {
@@ -252,7 +266,7 @@ pub mod mufs {
                     "hello.txt" => reply.entry(&TTL, &self.attrs[1], 0),
                     "fast.txt" => reply.entry(&TTL, &self.attrs[2], 0),
                     "slow.txt" => reply.entry(&TTL, &self.attrs[3], 0),
-                    _ => {reply.error(ENOENT)}
+                    _ => reply.error(ENOENT),
                 }
             } else {
                 reply.error(ENOENT);
@@ -283,10 +297,10 @@ pub mod mufs {
                         (3, FileType::RegularFile, "fast.txt"),
                         (4, FileType::RegularFile, "slow.txt"),
                     ]
-                        .iter()
-                        .enumerate()
-                        .skip(offset as usize)
-                        .all(|(index, entry)| reply.add(entry.0, (index + 1) as i64, entry.1, entry.2));
+                    .iter()
+                    .enumerate()
+                    .skip(offset as usize)
+                    .all(|(index, entry)| reply.add(entry.0, (index + 1) as i64, entry.1, entry.2));
                     reply.ok();
                 }
                 _ => reply.error(ENOENT),
@@ -306,8 +320,14 @@ pub mod mufs {
         ) {
             match ino {
                 2 => reply.data(&HELLO_TXT_CONTENT.as_bytes()[offset as usize..]),
-                3 => {std::thread::sleep(Duration::from_secs(1));  reply.data(&FAST_CONTENT.as_bytes()[offset as usize..])},
-                4 => {std::thread::sleep(Duration::from_secs(10)); reply.data(&SLOW_CONTENT.as_bytes()[offset as usize..])},
+                3 => {
+                    std::thread::sleep(Duration::from_secs(1));
+                    reply.data(&FAST_CONTENT.as_bytes()[offset as usize..])
+                }
+                4 => {
+                    std::thread::sleep(Duration::from_secs(10));
+                    reply.data(&SLOW_CONTENT.as_bytes()[offset as usize..])
+                }
                 _ => reply.error(ENOENT),
             }
         }
