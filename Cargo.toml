@@ -10,7 +10,7 @@ license = "MIT"
 name = "rofuse"
 readme = "README.md"
 repository = "https://github.com/payall4u/rofuse"
-version = "0.0.3"
+version = "0.0.4"
 
 [badges]
 travis-ci = {repository = "payall4u/rofuse"}

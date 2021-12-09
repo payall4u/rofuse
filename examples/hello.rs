@@ -1,9 +1,9 @@
 use clap::{crate_version, App, Arg};
+use libc::ENOENT;
 use rofuse::{
     FileAttr, FileType, Filesystem, MountOption, ReplyAttr, ReplyData, ReplyDirectory, ReplyEntry,
     Request,
 };
-use libc::ENOENT;
 use std::ffi::OsStr;
 use std::time::{Duration, UNIX_EPOCH};
 

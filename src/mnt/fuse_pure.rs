@@ -258,8 +258,13 @@ fn fuse_mount_fusermount(
     drop(child_socket); // close socket in parent
 
     let file = receive_fusermount_message(&receive_socket)?;
-    let mut receive_socket = Some(receive_socket);
+    unsafe {
+        let mut flags = libc::fcntl(file.as_raw_fd(), libc::F_GETFD, 0);
+        flags &= !libc::FD_CLOEXEC;
+        libc::fcntl(file.as_raw_fd(), libc::F_SETFD, flags);
+    }
 
+    let mut receive_socket = Some(receive_socket);
     if !options.contains(&MountOption::AutoUnmount) {
         // Only close the socket, if auto unmount is not set.
         // fusermount will keep running until the socket is closed, if auto unmount is set

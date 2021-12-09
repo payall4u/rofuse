@@ -1,6 +1,10 @@
 #![allow(clippy::needless_return)]
 
 use clap::{crate_version, App, Arg};
+#[cfg(feature = "abi-7-26")]
+use log::info;
+use log::LevelFilter;
+use log::{debug, warn};
 use rofuse::consts::FOPEN_DIRECT_IO;
 #[cfg(feature = "abi-7-26")]
 use rofuse::consts::FUSE_HANDLE_KILLPRIV;
@@ -12,10 +16,6 @@ use rofuse::{
     ReplyEmpty, ReplyEntry, ReplyOpen, ReplyStatfs, ReplyWrite, ReplyXattr, Request, TimeOrNow,
     FUSE_ROOT_ID,
 };
-#[cfg(feature = "abi-7-26")]
-use log::info;
-use log::LevelFilter;
-use log::{debug, warn};
 use serde::{Deserialize, Serialize};
 use std::cmp::min;
 use std::collections::BTreeMap;

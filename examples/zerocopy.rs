@@ -1,18 +1,18 @@
-use std::cmp::{max, min};
 use clap::{crate_version, App, Arg};
+use libc::ENOENT;
+use memmap2::{Mmap, MmapOptions};
 use rofuse::{
     FileAttr, FileType, Filesystem, MountOption, ReplyAttr, ReplyData, ReplyDirectory, ReplyEntry,
     Request,
 };
-use memmap2::{Mmap, MmapOptions};
-use libc::ENOENT;
+use std::cmp::{max, min};
 use std::ffi::OsStr;
-use std::time::{Duration, UNIX_EPOCH};
-use std::io::{Result, Error, Read, Seek};
 use std::fs::File;
+use std::io::{Error, Read, Result, Seek};
 use std::os::unix::fs::FileExt;
+use std::time::{Duration, UNIX_EPOCH};
 
-const MAX: i32 = 4 * 1024 *1024;
+const MAX: i32 = 4 * 1024 * 1024;
 const TTL: Duration = Duration::from_secs(1); // 1 second
 
 static ATTRS: [FileAttr; 2] = [
@@ -65,11 +65,11 @@ unsafe fn zero(name: String) -> Result<Zero> {
     let ans = memmap::MmapOptions::new().map(&file)?;
     println!("mmap len {}", ans.len());
 
-    return Ok(Zero{
+    return Ok(Zero {
         file: file,
         attrs: attrs,
         buffer: ans,
-    })
+    });
 }
 
 impl Filesystem for Zero {
@@ -153,11 +153,15 @@ fn main() {
             Arg::with_name("allow-root")
                 .long("allow-root")
                 .help("Allow root user to access filesystem"),
-        ).arg(
-        Arg::with_name("datafile")
-            .long("data-file").required(true).takes_value(true)
-            .help("data-file for fuse server"),
-        ).get_matches();
+        )
+        .arg(
+            Arg::with_name("datafile")
+                .long("data-file")
+                .required(true)
+                .takes_value(true)
+                .help("data-file for fuse server"),
+        )
+        .get_matches();
     env_logger::init();
     let mountpoint = matches.value_of("MOUNT_POINT").unwrap();
     let file = matches.value_of("datafile").unwrap();
